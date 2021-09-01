@@ -7,10 +7,10 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 	
-	char regularExpresion[100];
+	char regularExpresion[SIZE];
 	
 	printf("\nIngrese la expresion regular: ");
-	cin.get(regularExpresion, 100, '\n');
+	cin.get(regularExpresion, SIZE, '\n');
 	
 	printf("\nEntrada: %s\n", regularExpresion);
 

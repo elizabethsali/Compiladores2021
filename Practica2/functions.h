@@ -1,3 +1,5 @@
+const int SIZE = 100;
+
 class AFN
 {
 public:
@@ -6,9 +8,9 @@ public:
     int estadoFinal;
     char caracter;
 
-	char characters[100];
-	int estadosIniciales[100];
-	int estadosFinales[100];
+	char characters[SIZE];
+	int estadosIniciales[SIZE];
+	int estadosFinales[SIZE];
 	int id;
 	int posicion;
 
@@ -31,6 +33,6 @@ public:
 
 void generateAFN(char * regularExpresion);
 int isTransition(char c);
-void readRegularExpresion(char * regularExpresion, int length);
-int readParentesis(char * regularExpresion, int length, int pos);
+AFN readExpresion(AFN automata, int length, char * regularExpresion);
+AFN validateParentesis(AFN automata, int length, char * regularExpresion);
 AFN transicion(AFN automata,char caracter);
