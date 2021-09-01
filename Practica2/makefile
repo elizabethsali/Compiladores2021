@@ -10,4 +10,4 @@ main.o: main.cpp functions.h
 functions.o: functions.h
 
 clean :
-	rm main main.o functions.o
+	rm main main.o functions.o salida.dot
