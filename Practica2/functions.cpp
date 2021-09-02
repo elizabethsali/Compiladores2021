@@ -8,29 +8,11 @@
 using namespace std;
 
 char alfabeto[] = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','u','v','w','x','y','z','E'};
-char parentesis[SIZE];
-int posiciones[SIZE];
-int pos;
-int posicionActual;
 
 void generateAFN(char * regularExpresion){
 
 	int length = strlen(regularExpresion);
 	int i = 0;
-
-
-	for(i = 0; i < length; i++){
-
-		if(regularExpresion[i] == '(' || regularExpresion[i] == ')'){
-			parentesis[pos] = regularExpresion[i];
-			posiciones[pos] = i;
-			pos++;
-		}
-
-	}	
-
-	printf("%s\n", parentesis);
-
 
 	AFN automata;
 	automata.estadoActual = 0;
@@ -38,28 +20,35 @@ void generateAFN(char * regularExpresion){
 	automata.estadoFinal = 0;
 	automata.id = 0;
 	automata.posicion = 0;
-	int auxI = 0, auxJ = 0;
+	automata.lectura = 0;
 
+	printf("\nLeyendo expresion regular.\n");
+	automata = readExpresion(automata, length, regularExpresion);
 
-	for(i = 0; i < length; i++){
-		automata = transicion(automata,regularExpresion[i]);
-	}
+	printf("Generando archivo.\n");
 
-	//automata = readExpresion(automata, length, regularExpresion);
-
-
+	char archivo[] = "salida.dot";
 	ofstream myfile;
-	myfile.open ("salida.dot");
+	myfile.open (archivo);
 	myfile << "digraph {\n";
-	myfile << "	node [shape=oval]\n";
+	myfile << "	node [shape=circle style=filled fillcolor=white]\n";
 	myfile << "	rankdir=LR\n";
 
 	for(i = 0; i < automata.posicion; i++){
+
+		if(i == 0)
+			myfile << "\n	" << automata.estadosIniciales[i] << " [fillcolor=aquamarine shape=doublecircle]\n";
+
 		myfile << "\n	" << automata.estadosIniciales[i] << " -> " << automata.estadosFinales[i] << " [label=" << automata.characters[i] << "]";
 	}	
 
+	myfile << "\n\n	" << automata.estadosFinales[automata.posicion - 1] << " [fillcolor=coral shape=doublecircle]\n";
+
 	myfile << "\n}";
 	myfile.close();
+
+	printf("\nSalida: %s\n",archivo);
+
 }
 
 AFN readExpresion(AFN automata, int length, char * regularExpresion){
@@ -68,17 +57,32 @@ AFN readExpresion(AFN automata, int length, char * regularExpresion){
 
 	for(i = 0; i < length; i++){
 
-		posicionActual = i;
+		automata.lectura = i;
+
 
 		if(regularExpresion[i] == '('){
 
-			automata = validateParentesis(automata,length, regularExpresion);
+			switch(automata.estadoActual){
+				case 0:
+					automata.estadoActual = 1;
+					break;
+				case 1:
+					automata.estadoActual = 1;
+					break;
+				case 3:
+					automata.estadoActual = 1;
+					break;
+				case 5:
+					automata.estadoActual = 1;
+					break;
+			}
 
-		}else{
+			automata = validateParentesis(automata,length,regularExpresion,i);
 
+			i = automata.lectura + 1;
+
+		}else
 			automata = transicion(automata,regularExpresion[i]);
-
-		}
 
 
 	}	
@@ -87,79 +91,69 @@ AFN readExpresion(AFN automata, int length, char * regularExpresion){
 
 }
 
-AFN validateParentesis(AFN automata, int length, char * regularExpresion){
+AFN validateParentesis(AFN automata, int length, char * regularExpresion, int i){
 
-	int i = 0, j = 0, auxI = 0, auxJ = 0;
+	int j = 0;
 
-	for(i = posicionActual; i < length; i++){
+	for(j = i + 1; j < length; j++){
 
-		if(regularExpresion[i] == '('){
+		automata.lectura = j;
 
-			for(j = 0; j < pos; j++){
+		if(regularExpresion[j] == '('){
 
-				if(j > i && parentesis[j] == ')'){
+			automata = validateParentesis(automata,length,regularExpresion,j);
 
-					auxI = i;
-					auxJ = j;
-
-					while(auxI <= auxJ){
-						automata = transicion(automata,regularExpresion[auxI]);
-						auxI++;
-					}
-					
-
-				}else if(parentesis[j] == '('){
-
-					i = j;
-
-				}
-
+			switch(automata.estadoActual){
+				case 0:
+					automata.estadoActual = 1;
+					break;
+				case 1:
+					automata.estadoActual = 1;
+					break;
+				case 3:
+					automata.estadoActual = 1;
+					break;
+				case 5:
+					automata.estadoActual = 1;
+					break;
 			}
 
+			break;
 
-		}
+		}else
+			automata = transicion(automata,regularExpresion[j]);
 
-	}	
+	}
 
 	return automata;
 
 }
 
 int isTransition(char c){
+
 	int i = 0;
 	int n = strlen(alfabeto);
 
 	while(i < n){
-		if(c == alfabeto[i]){
+
+		if(c == alfabeto[i])
 			return 1;
-		}
+		
 		i++;
+
 	}
 
 	return 0;
+
 }
 
 AFN transicion(AFN automata,char caracter){
 
 	int i = 0, inicialUnion = 0, finalUnion = 0;
+	AFN automataNew;
 
-	if(caracter == '('){
-		switch(automata.estadoActual){
-			case 0:
-				automata.estadoActual = 1;
-				break;
-			case 1:
-				automata.estadoActual = 1;
-				break;
-			case 3:
-				automata.estadoActual = 1;
-				break;
-			case 5:
-				automata.estadoActual = 1;
-				break;
-		}
-		
-	}else if(isTransition(caracter) == 1){
+	if(isTransition(caracter) == 1){
+
 		switch(automata.estadoActual){
 			case 0:
 				automata.characters[automata.posicion] = caracter;
@@ -197,12 +191,12 @@ AFN transicion(AFN automata,char caracter){
 				automata.id++;
 				automata.posicion++;
 
-				AFN automataNew;
 				automataNew.estadoActual = 2;
 				automataNew.estadoInicial = automata.id;
 				automataNew.estadoFinal = automata.id;
 				automataNew.id = automata.id;
 				automataNew.posicion = 0;
+				automataNew.lectura = automata.lectura;
 
 				automataNew.characters[automataNew.posicion] = 'E';
 				automataNew.estadosIniciales[automataNew.posicion] = automataNew.id;
@@ -256,7 +250,9 @@ AFN transicion(AFN automata,char caracter){
 				automata.estadoActual = 2;
 				break;
 		}		
+
 	}else if(caracter == '|'){
+
 		switch(automata.estadoActual){
 			case 2:
 				automata.estadoActual = 3;
@@ -268,24 +264,22 @@ AFN transicion(AFN automata,char caracter){
 				automata.estadoActual = 3;
 				break;
 		}	
+
 	}else if(caracter == ')'){
-		switch(automata.estadoActual){
-			case 2:
-				automata.estadoActual = 4;
-				break;
-		}		
+
+		if(automata.estadoActual == 2)
+			automata.estadoActual = 4;
+
 	}else if(caracter == '*'){
 
-		AFN automataNew;
-
 		switch(automata.estadoActual){
 			case 2:
-
 				automataNew.estadoActual = 5;
 				automataNew.estadoInicial = automata.id;
 				automataNew.estadoFinal = automata.id;
 				automataNew.id = automata.id;
 				automataNew.posicion = 0;
+				automataNew.lectura = automata.lectura;
 
 				automataNew.characters[automataNew.posicion] = 'E';
 				automataNew.estadosIniciales[automataNew.posicion] = automataNew.id;
@@ -323,13 +317,12 @@ AFN transicion(AFN automata,char caracter){
 
 				break;
 			case 4:
-				
-
 				automataNew.estadoActual = 5;
 				automataNew.estadoInicial = automata.id;
 				automataNew.estadoFinal = automata.id;
 				automataNew.id = automata.id;
 				automataNew.posicion = 0;
+				automataNew.lectura = automata.lectura;
 
 				automataNew.characters[automataNew.posicion] = 'E';
 				automataNew.estadosIniciales[automataNew.posicion] = automataNew.id;
@@ -367,6 +360,7 @@ AFN transicion(AFN automata,char caracter){
 
 				break;
 		}
+
 	}
 
 
