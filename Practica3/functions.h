@@ -34,11 +34,12 @@ public:
     int lectura;
 };
 
-void generateAFN(char * regularExpresion);
+AFN generateAFN(char * regularExpresion);
 int isTransition(char c);
 AFN readExpresion(AFN automata, int length, char * regularExpresion);
 AFN validateParentesis(AFN automata, int length, char * regularExpresion, int i);
 AFN transicion(AFN automata,char caracter);
 
 AFD convertAFN(AFN automataN);
-int validateLetter(char * simbolos, char c);
+int validateLetter(char * simbolos, int length, char c);
+int validateDuplicate(AFN automataN, AFD automataD, int p);

@@ -8,8 +8,9 @@
 using namespace std;
 
 char alfabeto[] = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','u','v','w','x','y','z','E'};
+char status[] = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
 
-void generateAFN(char * regularExpresion){
+AFN generateAFN(char * regularExpresion){
 
 	int length = strlen(regularExpresion);
 	int i = 0;
@@ -48,6 +49,8 @@ void generateAFN(char * regularExpresion){
 	myfile.close();
 
 	printf("Salida: %s\n",archivo);
+
+	return automata;
 
 }
 
@@ -378,43 +381,141 @@ AFD convertAFN(AFN automataN){
 	automataD.lectura = 0;
 
 	char simbolos[SIZE];
-	int cont = 0;
+	int length = 0;
 	int i = 0;
+	int j = 0;
 
 	for(i = 0; i < automataN.posicion; i++){
 
-		if(validateLetter(simbolos, automataN.characters[i])){
-			simbolos[cont] = automataN.characters[i];
-			cont++;
+		if(validateLetter(simbolos, length, automataN.characters[i])){
+			printf("\n%c",automataN.characters[i]);
+			simbolos[length] = automataN.characters[i];
+			length++;
 		}
 
-
 	}
 
-	for(i = 0; i < automataN.posicion; i++){
+	printf("\nExisten %d letras diferentes.\n",length);
+	
 
-		if(automataN.characters[i] == 'E'){
-			automataD.estadosIniciales[automataD.posicion] = automataD.id;
-			automataD.estadosFinales[automataD.posicion] = automataN.estadosFinales[i];
-			automataD.posicion++;
-		}else
-			break;
+	if(!validateLetter(simbolos, length, 'E')){
+		char simbolosAux[SIZE];
+		simbolosAux[0] = 'E';
+		j = 0;
+		j++;
+		i = 0;
 		
+
+		for(i = 0; i < length; i++){
+			if(simbolos[i] != 'E'){
+				simbolosAux[j] = simbolos[i];
+				j++;
+			}
+		}
+
+		for(i = 0; i < length; i++)
+			simbolos[i] = simbolosAux[i];
+
 	}
 
+	int consecutiveFlag = 0;
+
+	j = 0;
+
+	for(j = 0; j < length; j++){
+
+		
+		for(i = 0; i < automataN.posicion; i++){
+
+			if(automataN.characters[i] == 'E' && automataN.characters[i] == simbolos[j]){
+
+				if((automataN.estadosIniciales[0] == automataN.estadosIniciales[i] || consecutiveFlag) && validateDuplicate(automataN,automataD,i)){
+ 
+					if(i == 0){
+						automataD.estadosIniciales[automataD.posicion] = automataD.id;
+						automataD.characters[automataD.posicion] = automataN.characters[i];
+						automataD.estadosFinales[automataD.posicion] = automataN.estadosIniciales[i];
+						automataD.posicion++;
+					}
+
+					automataD.estadosIniciales[automataD.posicion] = automataD.id;
+					automataD.characters[automataD.posicion] = automataN.characters[i];
+					automataD.estadosFinales[automataD.posicion] = automataN.estadosFinales[i];
+					automataD.posicion++;
+				}
+				
+			}else if(automataN.characters[i] == simbolos[j]){
+
+				if(validateDuplicate(automataN,automataD,i)){
+
+					automataD.estadosIniciales[automataD.posicion] = automataD.id;
+					automataD.characters[automataD.posicion] = automataN.characters[i];
+					automataD.estadosFinales[automataD.posicion] = automataN.estadosFinales[i];
+					automataD.posicion++;
+				}
+				
+			}
+
+			if(i >= 1){
+				if(automataN.characters[i] == automataN.characters[i-1])
+					consecutiveFlag = 1;
+				else
+					consecutiveFlag = 0;
+			}
+			
+		}
+
+		automataD.id++;
+
+	}
+
+	
+
+	printf("Generando archivo de AFD.\n");
+
+	char archivo[] = "AFD.dot";
+	ofstream myfile;
+	myfile.open (archivo);
+	myfile << "digraph {\n";
+	myfile << "	node [shape=circle style=filled fillcolor=white]\n";
+	myfile << "	rankdir=LR\n";
+
+	for(i = 0; i < automataD.posicion; i++){
+
+		if(i == 0)
+			myfile << "\n	" << status[automataD.estadosIniciales[i]] << " [fillcolor=aquamarine shape=doublecircle]\n";
+
+		myfile << "\n	" << status[automataD.estadosIniciales[i]] << " -> " << automataD.estadosFinales[i] << " [label=" << automataD.characters[i] << "]";
+	}	
+
+	myfile << "\n\n	" << automataD.estadosFinales[automataD.posicion - 1] << " [fillcolor=coral shape=doublecircle]\n";
+
+	myfile << "\n}";
+	myfile.close();
+
+	printf("Salida: %s\n",archivo);
 
 	return automataD;
 
 }
 
-int validateLetter(char * simbolos, char c){
+int validateLetter(char * simbolos, int length, char c){
 
 	int i = 0;
 
-	int length = strlen(simbolos);
-
 	for(i = 0; i < length; i++){
 		if(simbolos[i] == c)
+			return 0;
+	}
+
+	return 1;
+}
+
+int validateDuplicate(AFN automataN, AFD automataD, int p){
+	int i = 0;
+
+	for(i = 0; i < automataD.posicion; i++){
+		if(automataD.estadosIniciales[i] == automataD.id && automataD.characters[i] == automataN.characters[p] && automataD.estadosFinales[i] == automataN.estadosFinales[p])
 			return 0;
 	}
 

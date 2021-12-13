@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 	char regularExpresion[SIZE];
 
 	printf("\nCompiladores\n");
-	printf("Practica 2  - Construcciones de Thompson\n");
+	printf("Practica 3  - Construccion de subconjuntos\n");
 	printf("Elizabeth Salinas Sierra - 3CV16\n");
 	
 	printf("\nIngrese la expresion regular: ");
@@ -22,7 +22,9 @@ int main(int argc, char *argv[]) {
 	
 	printf("\nEntrada: %s\n", regularExpresion);
 
-	generateAFN(regularExpresion);
+	AFN automataN = generateAFN(regularExpresion);
+
+	AFD automataD = convertAFN(automataN);
 
 	return 0;
 }
