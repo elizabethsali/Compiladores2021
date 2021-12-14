@@ -396,6 +396,8 @@ AFD convertAFN(AFN automataN){
 	}
 
 	printf("\nExisten %d letras diferentes.\n",length);
+
+	int hasE = 0;
 	
 
 	if(!validateLetter(simbolos, length, 'E')){
@@ -416,6 +418,8 @@ AFD convertAFN(AFN automataN){
 		for(i = 0; i < length; i++)
 			simbolos[i] = simbolosAux[i];
 
+		hasE = 1;
+
 	}
 
 	int consecutiveFlag = 0;
@@ -427,7 +431,7 @@ AFD convertAFN(AFN automataN){
 		
 		for(i = 0; i < automataN.posicion; i++){
 
-			if(automataN.characters[i] == 'E' && automataN.characters[i] == simbolos[j]){
+			if(automataN.characters[i] == 'E' && automataN.characters[i] == simbolos[j] && hasE){
 
 				if((automataN.estadosIniciales[0] == automataN.estadosIniciales[i] || consecutiveFlag) && validateDuplicate(automataN,automataD,i)){
  
@@ -444,7 +448,7 @@ AFD convertAFN(AFN automataN){
 					automataD.posicion++;
 				}
 				
-			}else if(automataN.characters[i] == simbolos[j]){
+			}else if(automataN.characters[i] == simbolos[j] && !hasE){
 
 				if(validateDuplicate(automataN,automataD,i)){
 
@@ -468,8 +472,6 @@ AFD convertAFN(AFN automataN){
 		automataD.id++;
 
 	}
-
-	
 
 	printf("Generando archivo de AFD.\n");
 
@@ -520,4 +522,57 @@ int validateDuplicate(AFN automataN, AFD automataD, int p){
 	}
 
 	return 1;
+}
+
+AFD search(AFN automataN, AFD automataD, char c){
+
+	int i = 0;
+	int consecutiveFlag = 0;
+	int changeFlag = 0;
+
+
+	for(i = 0; i < automataN.posicion; i++){
+
+		if(automataN.characters[i] == 'E' && automataN.characters[i] == c){
+
+			if((automataN.estadosIniciales[0] == automataN.estadosIniciales[i] || consecutiveFlag) && validateDuplicate(automataN,automataD,i)){
+
+				if(i == 0){
+					automataD.estadosIniciales[automataD.posicion] = automataD.id;
+					automataD.characters[automataD.posicion] = automataN.characters[i];
+					automataD.estadosFinales[automataD.posicion] = automataN.estadosIniciales[i];
+					automataD.posicion++;
+				}
+
+				automataD.estadosIniciales[automataD.posicion] = automataD.id;
+				automataD.characters[automataD.posicion] = automataN.characters[i];
+				automataD.estadosFinales[automataD.posicion] = automataN.estadosFinales[i];
+				automataD.posicion++;
+			}
+			
+		}else if(automataN.characters[i] == c){
+
+			if(validateDuplicate(automataN,automataD,i)){
+
+				automataD.estadosIniciales[automataD.posicion] = automataD.id;
+				automataD.characters[automataD.posicion] = automataN.characters[i];
+				automataD.estadosFinales[automataD.posicion] = automataN.estadosFinales[i];
+				automataD.posicion++;
+			}
+			
+		}
+
+		if(i >= 1){
+			if(automataN.characters[i] == automataN.characters[i-1])
+				consecutiveFlag = 1;
+			else
+				consecutiveFlag = 0;
+
+			if(automataD.estadosIniciales[i] == automataD.estadosIniciales[i-1])
+					changeFlag = 0;
+				else
+					changeFlag = 1;
+		}
+		
+	}
 }
