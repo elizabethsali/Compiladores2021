@@ -43,3 +43,5 @@ AFN transicion(AFN automata,char caracter);
 AFD convertAFN(AFN automataN);
 int validateLetter(char * simbolos, int length, char c);
 int validateDuplicate(AFN automataN, AFD automataD, int p);
+AFD search(AFN automataN, AFD automataD, int pos, char * simbolos, int length);
+int isIn(AFD automataD, int estadoBuscado, int estadoAvalidar);

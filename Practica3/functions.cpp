@@ -473,6 +473,15 @@ AFD convertAFN(AFN automataN){
 
 	}
 
+
+	for(i = 0; i < automataD.id; i++){
+
+		automataD = search(automataN, automataD, i, simbolos, length);
+
+	}
+
+
+
 	printf("Generando archivo de AFD.\n");
 
 	char archivo[] = "AFD.dot";
@@ -487,10 +496,10 @@ AFD convertAFN(AFN automataN){
 		if(i == 0)
 			myfile << "\n	" << status[automataD.estadosIniciales[i]] << " [fillcolor=aquamarine shape=doublecircle]\n";
 
-		myfile << "\n	" << status[automataD.estadosIniciales[i]] << " -> " << automataD.estadosFinales[i] << " [label=" << automataD.characters[i] << "]";
+		myfile << "\n	" << status[automataD.estadosIniciales[i]] << " -> " << status[automataD.estadosFinales[i]] << " [label=" << automataD.characters[i] << "]";
 	}	
 
-	myfile << "\n\n	" << automataD.estadosFinales[automataD.posicion - 1] << " [fillcolor=coral shape=doublecircle]\n";
+	myfile << "\n\n	" << status[automataD.estadosFinales[automataD.posicion - 1]] << " [fillcolor=coral shape=doublecircle]\n";
 
 	myfile << "\n}";
 	myfile.close();
@@ -524,55 +533,86 @@ int validateDuplicate(AFN automataN, AFD automataD, int p){
 	return 1;
 }
 
-AFD search(AFN automataN, AFD automataD, char c){
+AFD search(AFN automataN, AFD automataD, int pos, char * simbolos, int length){
 
 	int i = 0;
 	int consecutiveFlag = 0;
 	int changeFlag = 0;
+	int flagInsert = 0;
+	int j = 0;
 
+	if(simbolos[0] == 'E')
+		j = 1;
 
-	for(i = 0; i < automataN.posicion; i++){
+	while(j < length)
+	{
+		for(i = 0; i < automataN.posicion; i++){
 
-		if(automataN.characters[i] == 'E' && automataN.characters[i] == c){
+			if(automataN.characters[i] == 'E' && automataN.characters[i] == simbolos[j] && isIn(automataD, pos, automataN.estadosIniciales[i])){
 
-			if((automataN.estadosIniciales[0] == automataN.estadosIniciales[i] || consecutiveFlag) && validateDuplicate(automataN,automataD,i)){
+				if((automataN.estadosIniciales[0] == automataN.estadosIniciales[i] || consecutiveFlag) && validateDuplicate(automataN,automataD,i)){
 
-				if(i == 0){
-					automataD.estadosIniciales[automataD.posicion] = automataD.id;
+					if(i == 0){
+						automataD.estadosFinales[pos] = automataD.id;
+						automataD.estadosIniciales[automataD.posicion] = pos;
+						automataD.characters[automataD.posicion] = automataN.characters[i];
+						automataD.estadosFinales[automataD.posicion] = automataD.id;
+						automataD.posicion++;
+					}
+
+					automataD.estadosIniciales[automataD.posicion] = pos;
 					automataD.characters[automataD.posicion] = automataN.characters[i];
-					automataD.estadosFinales[automataD.posicion] = automataN.estadosIniciales[i];
+					automataD.estadosFinales[automataD.posicion] = automataD.id;
 					automataD.posicion++;
+
+					flagInsert = 1;
 				}
+				
+			}else if(automataN.characters[i] == simbolos[j] && isIn(automataD, pos, automataN.estadosIniciales[i])){
 
-				automataD.estadosIniciales[automataD.posicion] = automataD.id;
-				automataD.characters[automataD.posicion] = automataN.characters[i];
-				automataD.estadosFinales[automataD.posicion] = automataN.estadosFinales[i];
-				automataD.posicion++;
+				if(validateDuplicate(automataN,automataD,i)){
+
+					automataD.estadosIniciales[automataD.posicion] = pos;
+					automataD.characters[automataD.posicion] = automataN.characters[i];
+					automataD.estadosFinales[automataD.posicion] = automataD.id;
+					automataD.posicion++;
+
+					flagInsert = 1;
+				}
+				
 			}
-			
-		}else if(automataN.characters[i] == c){
 
-			if(validateDuplicate(automataN,automataD,i)){
-
-				automataD.estadosIniciales[automataD.posicion] = automataD.id;
-				automataD.characters[automataD.posicion] = automataN.characters[i];
-				automataD.estadosFinales[automataD.posicion] = automataN.estadosFinales[i];
-				automataD.posicion++;
-			}
-			
-		}
-
-		if(i >= 1){
-			if(automataN.characters[i] == automataN.characters[i-1])
-				consecutiveFlag = 1;
-			else
-				consecutiveFlag = 0;
-
-			if(automataD.estadosIniciales[i] == automataD.estadosIniciales[i-1])
-					changeFlag = 0;
+			if(i >= 1){
+				if(automataN.characters[i] == automataN.characters[i-1])
+					consecutiveFlag = 1;
 				else
-					changeFlag = 1;
+					consecutiveFlag = 0;
+
+				if(automataD.estadosIniciales[i] == automataD.estadosIniciales[i-1])
+						changeFlag = 0;
+					else
+						changeFlag = 1;
+			}
+			
 		}
-		
+		j++;
 	}
+
+	if(flagInsert)
+		automataD.id++;
+
+	return automataD;
+}
+
+int isIn(AFD automataD, int estadoBuscado, int estadoAvalidar){
+
+	int i = 0;
+
+	for (i = 0; i < automataD.posicion; ++i)
+	{
+		if(automataD.estadosIniciales[i] == estadoAvalidar && i == estadoBuscado)	
+			return 1;
+	}
+
+	return 0;
 }
